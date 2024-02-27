@@ -21,6 +21,10 @@ describe("MateriaParser", () => {
 		materia.nombre = "Taller de Ética";
 		materia.grupo = "1CM3";
 		expect(MateriaParser.tituloEvento(materia)).to.equal("TE - 1CM3");
+
+		materia.nombre = "TEORIA DE LAS COMUNICACIONES";
+		materia.grupo = "2TV3";
+		expect(MateriaParser.tituloEvento(materia)).to.equal("TC - 2TV3");
 	});
 
 	it("Descripcion de evento", () => {

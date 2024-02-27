@@ -37,9 +37,31 @@ let form = async (page: Page) => {
 };
 
 let loginGoogle = async (page: Page) => {
+	await page.goto("https://accounts.google.com/Login", {
+		waitUntil: "networkidle2",
+	});
+	// Llena el campo de usuario
+	let nextButton = await page.$("#identifierNext button");
+	if (!nextButton) {
+		rl.question(
+			"\nERROR EN AUTORRELLENO. Inicia sesion de forma manual. Presiona ENTER despues de haber iniciado sesion."
+		);
+		return;
+	}
+
+	await page.type("#identifierId", process.env.GOOGLE_EMAIL as string); // Lee BOLETA desde .env
+	await nextButton.click();
+
+	await new Promise((resolve) => setTimeout(resolve, 2000));
+
+	await page.waitForSelector("#password input", { visible: true });
+	await page.type("#password input", process.env.GOOGLE_PASSWORD as string); // Lee PASSWORD desde .env
+	await page.waitForSelector("#passwordNext button", { visible: true });
+	await page.click("#passwordNext button");
+
 	// Pausa la automatización y permite que el usuario complete el inicio de sesión manualmente
 	await rl.question(
-		"Inicia sesión en Google Calendar y luego presiona Enter aquí."
+		"Confirma la autenticación de doble factor y presiona ENTER para continuar."
 	);
 };
 
@@ -68,38 +90,11 @@ if (
 		);
 	};
 
-	loginGoogle = async (page: Page) => {
-		// Llena el campo de usuario
-		let nextButton = await page.$("#identifierNext button");
-		if (!nextButton) {
-			rl.question(
-				"\nERROR EN AUTORRELLENO. Inicia sesion de forma manual. Presiona ENTER despues de haber iniciado sesion."
-			);
-			return;
-		}
-
-		await page.type("#identifierId", process.env.GOOGLE_EMAIL as string); // Lee BOLETA desde .env
-		await nextButton.click();
-
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-
-		await page.waitForSelector("#password input", { visible: true });
-		await page.type("#password input", process.env.GOOGLE_PASSWORD as string); // Lee PASSWORD desde .env
-		await page.waitForSelector("#passwordNext button", { visible: true });
-		await page.click("#passwordNext button");
-
-		// Pausa la automatización y permite que el usuario complete el inicio de sesión manualmente
-		await rl.question(
-			"Confirma la autenticación de doble factor y presiona ENTER para continuar."
-		);
-	};
 }
 
 (async () => {
 	const browser = await puppeteer.launch({
 		headless: false,
-		executablePath:
-			"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
 	});
 	const page = await browser.newPage();
 
@@ -136,13 +131,16 @@ if (
 	}
 
 	// Iniciar sesion en Google Calendar
-	await page.goto("https://calendar.google.com/calendar/r", {
-		waitUntil: "networkidle2",
-	});
 	await loginGoogle(page);
 
 	// Crear eventos en Google Calendar
-	let nombreCalendario: string = "";
+	await page.goto("https://calendar.google.com/calendar/r", {
+		waitUntil: "networkidle2",
+	});
+	await rl.question(
+		"Selecciona el calendario en el que quieres crear los eventos, unicamente debe estar activo el calendario en el que quieres poner tú horario. Presiona ENTER para continuar."
+	);
+
 	for (let i = 0; i < materias.length; i++) {
 		let materia = materias[i];
 		let eventos = MateriaParser.parseMateriaToEvento(materia);
@@ -153,95 +151,6 @@ if (
 			console.log(evento.urlGenerador);
 
 			await page.goto(evento.urlGenerador);
-
-			if (i == 0 && j == 0) {
-				await rl.question(
-					"Confirma el calendario en el que quieres crear los eventos. Presiona ENTER para continuar."
-				);
-
-				nombreCalendario =
-					(await (
-						await page.waitForSelector("#xCalOwn", { hidden: true })
-					)?.evaluate((element) => element.textContent)) ?? "";
-			} else {
-				await page.waitForSelector("#xCalSel", { visible: true });
-
-				let calendarioDropdown = await page.$("#xCalSel>div");
-				await calendarioDropdown?.click();
-
-				await new Promise((resolve) => setTimeout(resolve, 500));
-
-				//* Intento de seleccionar el calendario
-				//! No funciona
-				/* let selectores = await page.$$("#xCalSel>div");
-
-				let selector;
-
-				for (let s of selectores) {
-					if ((await s.evaluate((element) => element.ariaHidden)) !== "true") {
-						selector = s;
-					}
-				}
-
-				if(!selector) {
-					console.log("No se encontró el selector.");
-					await browser.close();
-					process.exit(200);
-				}
-
-				let calendarios = await selector?.$$("div");
-
-				if (!calendarios) {
-					console.log("No se encontraron calendarios.");
-					await browser.close();
-					process.exit(200);
-				}
-
-				let calendario = await aFind(calendarios, async (calendario) => {
-					let nombre = await calendario.evaluate(
-						(calendario) => calendario.innerText
-					);
-					return nombre === nombreCalendario;
-				});
-
-				if (!calendario) {
-					console.log("No se encontró el calendario.");
-					await browser.close();
-					process.exit(200);
-				}
-
-				console.log(
-					await page.evaluate((calendario) => calendario.innerHTML, calendario)
-				);
-
-				console.log(
-					await page.evaluate((calendario) => calendario.outerHTML, calendario)
-				);
-
-				//TODO Click en el calendario
-				let { left, right, top, bottom } = await page.evaluate(
-					(selector) => selector.getBoundingClientRect(),
-					selector
-				);
-
-				let width = right - left;
-				let height = bottom - top;
-
-				console.log(left, right, bottom, top);
-
-				left += width / 2;
-				right += height / 2;
-				left = Math.round(left);
-				right = Math.round(right);
-
-				console.log(left, right);
-
-				await page.mouse.click(left, right); */
-
-				await rl.question(
-					"Confirma el calendario en el que quieres crear los eventos. Presiona ENTER para continuar."
-				);
-			}
 
 			await page.waitForSelector("#xSaveBu", { visible: true });
 			await page.click("#xSaveBu");

@@ -103,7 +103,7 @@ export class Materia {
 			"vía",
 		];
 
-		palabras = palabras.filter((palabra) => !filtro.includes(palabra));
+		palabras = palabras.filter((palabra) => !filtro.includes(palabra.toLowerCase()));
 
 		for (const element of palabras) {
 			abreviacion += element[0];

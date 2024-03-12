@@ -6,7 +6,6 @@ puppeteer.use(StealthPlugin());
 
 import { Dias, Horario, Materia } from "./libs/Materias";
 import { MateriaParser } from "./libs/MateriaParser";
-import { aFind } from "./libs/util/asyncLib";
 const readline = require("readline/promises");
 require("dotenv").config();
 
@@ -33,7 +32,7 @@ const rl = readline.createInterface({
 
 let form = async (page: Page) => {
 	// Pausa la automatización y permite que el usuario complete el inicio de sesión manualmente
-	await rl.question("Inicia sesión y luego presiona Enter aquí.");
+	await rl.question("\n|------>\n|SAES-1. Inicia sesión y luego presiona Enter aquí.");
 };
 
 let loginGoogle = async (page: Page) => {
@@ -44,7 +43,7 @@ let loginGoogle = async (page: Page) => {
 	let nextButton = await page.$("#identifierNext button");
 	if (!nextButton) {
 		rl.question(
-			"\nERROR EN AUTORRELLENO. Inicia sesion de forma manual. Presiona ENTER despues de haber iniciado sesion."
+			"\n|------>\nERROR EN AUTORRELLENO.\n\n|------>\n|SAES-1. Inicia sesion de forma manual. Presiona ENTER despues de haber iniciado sesion."
 		);
 		return;
 	}
@@ -61,7 +60,7 @@ let loginGoogle = async (page: Page) => {
 
 	// Pausa la automatización y permite que el usuario complete el inicio de sesión manualmente
 	await rl.question(
-		"Confirma la autenticación de doble factor y presiona ENTER para continuar."
+		"\n|------>\n|GOOGLE-3. Confirma la autenticación de doble factor y presiona ENTER para continuar."
 	);
 };
 
@@ -86,7 +85,7 @@ if (
 		); // Lee PASSWORD desde .env
 		// Pausa la automatización y permite que el usuario complete el inicio de sesión manualmente
 		await rl.question(
-			"Rellena el CAPTCHA manualmente y luego presiona Enter aquí."
+			"\n|------>\n|SAES-1. Rellena el CAPTCHA manualmente y luego presiona Enter aquí."
 		);
 	};
 
@@ -138,7 +137,7 @@ if (
 		waitUntil: "networkidle2",
 	});
 	await rl.question(
-		"Selecciona el calendario en el que quieres crear los eventos, unicamente debe estar activo el calendario en el que quieres poner tú horario. Presiona ENTER para continuar."
+		"\n|------>\n|GOOGLE-5. Selecciona el calendario en el que quieres crear los eventos, unicamente debe estar activo el calendario en el que quieres poner tú horario. Presiona ENTER para continuar."
 	);
 
 	for (let i = 0; i < materias.length; i++) {
@@ -162,7 +161,7 @@ if (
 	}
 
 	// FINALIZAR
-	await rl.question("Finaliza el proceso con ENTER.");
+	await rl.question("\n|------>\n|GOOGLE-7. Finaliza el proceso con ENTER.");
 
 	await browser.close();
 	process.exit(0);
